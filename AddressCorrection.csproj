@@ -17,8 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="src\AddressCorrection.Infrastructure\Documents\" />
+    <Folder Include="src\AddressCorrection.Infrastructure\Persistence\Documents\" />
     <Folder Include="src\AddressCorrection.Infrastructure\Mappers\" />
+    <Folder Include="src\AddressCorrection.Domain\Constants\" />
   </ItemGroup>
 
 </Project>

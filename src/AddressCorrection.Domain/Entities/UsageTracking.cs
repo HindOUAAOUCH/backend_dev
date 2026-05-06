@@ -1,12 +1,11 @@
-﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-
 namespace AddressCorrection.src.AddressCorrection.Domain.Entities;
 
+/// <summary>
+/// Entité domain représentant le suivi d'utilisation journalier.
+/// Aucune dépendance sur l'infrastructure (pas d'annotations MongoDB).
+/// </summary>
 public sealed class UsageTracking
 {
-    [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)]
     public string? Id { get; set; }
 
     public DateTime Date { get; set; }

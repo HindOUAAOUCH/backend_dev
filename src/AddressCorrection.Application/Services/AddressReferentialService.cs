@@ -2,7 +2,7 @@
 
 namespace AddressCorrection.src.AddressCorrection.Application.Services;
 
-public class AddressReferentialService
+public class AddressReferentialService : IAddressReferentialService
 {
     private readonly IEnumerable<IAddressReferentialClient> _clients;
     private readonly ILogger<AddressReferentialService> _logger;

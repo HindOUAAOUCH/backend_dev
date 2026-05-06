@@ -1,6 +1,6 @@
 ﻿using AddressCorrection.src.AddressCorrection.Application.DTOs;
 using AddressCorrection.src.AddressCorrection.Application.Interfaces;
-using AddressCorrection.src.AddressCorrection.Domain.Entities;
+using AddressCorrection.src.AddressCorrection.Application.Mappers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AddressCorrection.src.AddressCorrection.API.Controllers;
@@ -43,7 +43,7 @@ public sealed class CorrectionsController : ControllerBase
         try
         {
             var paged = await _repository.GetPagedAsync(page, pageSize, status, search);
-            return Ok(MapToDto(paged));
+            return Ok(CorrectionRequestMapper.ToPagedDto(paged));
         }
         catch (Exception ex)
         {
@@ -81,32 +81,4 @@ public sealed class CorrectionsController : ControllerBase
                 new { error = "An unexpected error occurred." });
         }
     }
-
-    // ── Mapper privé ──────────────────────────────────────────────────────────
-
-    private static PagedCorrectionRequestDto MapToDto(PagedResult<CorrectionRequest> paged) =>
-        new()
-        {
-            Items = paged.Items
-                .Select(r => new CorrectionRequestDto
-                {
-                    Id = r.Id,
-                    RawAddress = r.RawAddress,
-                    CorrectedAddress = r.CorrectedAddress,
-                    FromCache = r.FromCache,
-                    ModelUsed = r.ModelUsed,
-                    Status = r.Status,
-                    DurationMs = r.DurationMs,
-                    Source = r.Source,
-                    SentAt = r.SentAt,
-                })
-                .ToList()
-                .AsReadOnly(),
-            Total = paged.Total,
-            Page = paged.Page,
-            PageSize = paged.PageSize,
-            TotalPages = paged.TotalPages,
-            HasNext = paged.HasNext,
-            HasPrev = paged.HasPrev,
-        };
 }

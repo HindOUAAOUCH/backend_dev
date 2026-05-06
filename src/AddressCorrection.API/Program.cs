@@ -76,12 +76,13 @@ builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<ICorrectionRequestRepository, CorrectionRequestRepository>();
 builder.Services.AddScoped<IUsageTrackingRepository, UsageTrackingRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // ── Référentiels d'adresses ───────────────────────────────────────────────────
 builder.Services.AddScoped<IAddressReferentialClient, BanClient>();         // 🇫🇷 France
 builder.Services.AddScoped<IAddressReferentialClient, CartoCiudadClient>(); // 🇪🇸 Espagne
 builder.Services.AddScoped<IAddressReferentialClient, NominatimClient>();   // 🌍 Reste Europe
-builder.Services.AddScoped<AddressReferentialService>();
+builder.Services.AddScoped<IAddressReferentialService, AddressReferentialService>();
 
 // ── Services applicatifs ──────────────────────────────────────────────────────
 builder.Services.AddScoped<ILlmClient, GitHubLlmClient>();
