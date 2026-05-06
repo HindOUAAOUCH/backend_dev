@@ -1,5 +1,6 @@
 using AddressCorrection.src.AddressCorrection.Application.Interfaces;
 using AddressCorrection.src.AddressCorrection.Application.Mappers;
+using AddressCorrection.src.AddressCorrection.Domain.Constants;
 
 namespace AddressCorrection.src.AddressCorrection.Application.Pipeline.Steps;
 
@@ -29,8 +30,8 @@ public class TrackingStep : ICorrectionStep
             rawAddress: context.Request.RawAddress,
             correctedAddress: correctedAddress,
             fromCache: context.FromCache,
-            modelUsed: context.ModelUsed ?? string.Empty,
-            status: context.Status ?? string.Empty,
+            modelUsed: context.ModelUsed ?? CorrectionConstants.Model.None,
+            status: context.Status ?? CorrectionConstants.Status.Failed,
             durationMs: context.DurationMs);
 
         return context;
