@@ -1,4 +1,4 @@
-﻿using AddressCorrection.src.AddressCorrection.Application.DTOs;
+using AddressCorrection.src.AddressCorrection.Application.DTOs;
 using AddressCorrection.src.AddressCorrection.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,20 +8,22 @@ namespace AddressCorrection.src.AddressCorrection.API.Controllers;
 [Route("api/[controller]")]
 public class ModelController : ControllerBase
 {
-    private readonly IModelSelectionService _modelSelectionService;
-    public ModelController(IModelSelectionService modelSelectionService)
+    private readonly IActiveLlmModelProvider _modelProvider;
+
+    public ModelController(IActiveLlmModelProvider modelProvider)
     {
-        _modelSelectionService = modelSelectionService;
+        _modelProvider = modelProvider;
     }
+
     [HttpPost]
     public IActionResult SelectModel([FromBody] SelectModelRequest request)
     {
-        if(request.ModelName is null)
+        if (request.ModelName is null)
         {
-            _modelSelectionService.ResetSelection();
+            _modelProvider.ResetSelection();
             return Ok(new { message = "reset selection" });
         }
-        _modelSelectionService.SelectModel(request.ModelName);
+        _modelProvider.SelectModel(request.ModelName);
         return Ok(new { message = $"Modèle sélectionné : {request.ModelName}" });
     }
 }
