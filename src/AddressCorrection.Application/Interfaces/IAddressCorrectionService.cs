@@ -2,7 +2,7 @@
 
 namespace AddressCorrection.src.AddressCorrection.Application.Interfaces;
 
-public interface IAddressService
+public interface IAddressCorrectionService
 {
     Task<AddressResponse?> CorrectAsync(AddressRequest request);
 }

@@ -6,10 +6,10 @@ namespace AddressCorrection.src.AddressCorrection.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ModelController : ControllerBase
+public class LlmModelSelectionController : ControllerBase
 {
     private readonly IModelSelectionService _modelSelectionService;
-    public ModelController(IModelSelectionService modelSelectionService)
+    public LlmModelSelectionController(IModelSelectionService modelSelectionService)
     {
         _modelSelectionService = modelSelectionService;
     }

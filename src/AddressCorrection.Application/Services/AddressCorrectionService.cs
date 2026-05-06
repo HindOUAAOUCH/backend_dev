@@ -13,7 +13,7 @@ using System.Text.Json;
 
 namespace AddressCorrection.src.AddressCorrection.Application.Services;
 
-public class AddressCorrectionService : IAddressService
+public class AddressCorrectionService : IAddressCorrectionService
 {
     private readonly ILlmClient _llmClient;
     private readonly GitHubModelsConfig _config;
@@ -63,7 +63,7 @@ public class AddressCorrectionService : IAddressService
             _logger.LogInformation("Cache hit for: {Address}", normalizedAddress);
 
             var cachedResponse = AddressMapper.ToResponse(cached);
-            await SaveRequestTrace(
+            await RecordCorrectionAttemptAsync(
                 rawAddress: request.RawAddress,
                 correctedAddress: AddressMapper.ToFormattedLine(cachedResponse),
                 fromCache: true,
@@ -107,7 +107,7 @@ public class AddressCorrectionService : IAddressService
         if (llmResult == null)
         {
             stopwatch.Stop();
-            await SaveRequestTrace(
+            await RecordCorrectionAttemptAsync(
                 rawAddress: request.RawAddress,
                 correctedAddress: null,
                 fromCache: false,
@@ -118,7 +118,7 @@ public class AddressCorrectionService : IAddressService
         }
 
         // ── Étape 4 : Validation référentiel ─────────────────────────────────
-        var referentialResult = await GetReferentialResultSafeAsync(llmResult);
+        var referentialResult = await TryValidateWithReferentialAsync(llmResult);
 
         if (referentialResult != null)
         {
@@ -138,7 +138,7 @@ public class AddressCorrectionService : IAddressService
         await _addressRepository.SaveAsync(record);
 
         // Trace de la requête avec l'adresse corrigée formatée
-        await SaveRequestTrace(
+        await RecordCorrectionAttemptAsync(
             rawAddress: request.RawAddress,
             correctedAddress: AddressMapper.ToFormattedLine(llmResult),
             fromCache: false,
@@ -153,7 +153,7 @@ public class AddressCorrectionService : IAddressService
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private async Task<ReferentialResult?> GetReferentialResultSafeAsync(AddressResponse llmResult)
+    private async Task<ReferentialResult?> TryValidateWithReferentialAsync(AddressResponse llmResult)
     {
         try
         {
@@ -171,7 +171,7 @@ public class AddressCorrectionService : IAddressService
         }
     }
 
-    private async Task SaveRequestTrace(
+    private async Task RecordCorrectionAttemptAsync(
         string rawAddress,
         string? correctedAddress,
         bool fromCache,

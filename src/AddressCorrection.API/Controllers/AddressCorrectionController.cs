@@ -7,12 +7,12 @@ namespace AddressCorrection.src.AddressCorrection.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AddressController : ControllerBase
+public class AddressCorrectionController : ControllerBase
 {
-    private readonly IAddressService _addressService;
-    private readonly ILogger<AddressController> _logger;
+    private readonly IAddressCorrectionService _addressService;
+    private readonly ILogger<AddressCorrectionController> _logger;
 
-    public AddressController(IAddressService addressService, ILogger<AddressController> logger)
+    public AddressCorrectionController(IAddressCorrectionService addressService, ILogger<AddressCorrectionController> logger)
     {
         _addressService = addressService;
         _logger = logger;

@@ -89,7 +89,7 @@ builder.Services.AddScoped<IAddressReferentialService, AddressReferentialService
 
 // ── Services applicatifs ──────────────────────────────────────────────────────
 builder.Services.AddScoped<ILlmClient, GitHubLlmClient>();
-builder.Services.AddScoped<IAddressService, AddressCorrectionService>();
+builder.Services.AddScoped<IAddressCorrectionService, AddressCorrectionService>();
 builder.Services.AddSingleton<IModelSelectionService, ModelSelectionService>(); // thread-safe
 
 builder.Services.AddControllers();
