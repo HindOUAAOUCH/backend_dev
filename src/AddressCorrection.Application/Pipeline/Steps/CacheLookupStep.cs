@@ -25,7 +25,7 @@ public class CacheLookupStep : ICorrectionStep
         if (context.Result != null) return context;
 
         if (string.IsNullOrEmpty(context.NormalizedAddress))
-            throw new InvalidOperationException("NormalizedAddress must be set before CacheLookupStep.");
+            throw new InvalidOperationException("NormalizedAddress must be set by the orchestrator before CacheLookupStep.");
 
         var cached = await _cacheStrategy.GetIfExistsAsync(context.NormalizedAddress);
         if (cached == null) return context;

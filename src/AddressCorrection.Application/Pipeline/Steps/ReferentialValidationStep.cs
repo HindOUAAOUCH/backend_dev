@@ -45,7 +45,9 @@ public class ReferentialValidationStep : ICorrectionStep
         }
         catch (TimeoutException)
         {
-            _logger.LogWarning("Referential validation timed out (non-blocking). Continuing without enrichment.");
+            var sanitizedAddress = context.NormalizedAddress?.Replace("\r", "").Replace("\n", "");
+            _logger.LogWarning("Referential validation timed out for address: {Address} (non-blocking). Continuing without enrichment.",
+                sanitizedAddress);
         }
 
         return context;

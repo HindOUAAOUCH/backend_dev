@@ -22,9 +22,9 @@ public class PersistenceStep : ICorrectionStep
         if (context.Result == null || context.FromCache) return context;
 
         if (string.IsNullOrEmpty(context.NormalizedAddress))
-            throw new InvalidOperationException("NormalizedAddress must be set before PersistenceStep.");
+            throw new InvalidOperationException("NormalizedAddress must be set by the orchestrator before PersistenceStep.");
         if (context.ModelUsed == null)
-            throw new InvalidOperationException("ModelUsed must be set before PersistenceStep.");
+            throw new InvalidOperationException("ModelUsed must be set by LlmProcessingStep before PersistenceStep.");
 
         var record = AddressMapper.ToRecord(
             context.Request,
