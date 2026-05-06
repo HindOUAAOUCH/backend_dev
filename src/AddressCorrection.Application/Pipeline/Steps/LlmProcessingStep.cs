@@ -31,7 +31,9 @@ public class LlmProcessingStep : ICorrectionStep
 
         if (result == null)
         {
-            _logger.LogError("All LLM models failed for address: {Address}", context.Request.RawAddress);
+            // Sanitize user-provided address before logging to prevent log forging
+            var sanitizedAddress = context.Request.RawAddress.Replace("\r", "").Replace("\n", "");
+            _logger.LogError("All LLM models failed for address: {Address}", sanitizedAddress);
             context.Status = CorrectionConstants.Status.Failed;
             context.Error = new AllModelsFailedException();
             context.Stopwatch.Stop();

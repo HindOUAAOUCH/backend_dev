@@ -24,10 +24,15 @@ public class CacheLookupStep : ICorrectionStep
     {
         if (context.Result != null) return context;
 
-        var cached = await _cacheStrategy.GetIfExistsAsync(context.NormalizedAddress!);
+        if (string.IsNullOrEmpty(context.NormalizedAddress))
+            throw new InvalidOperationException("NormalizedAddress must be set before CacheLookupStep.");
+
+        var cached = await _cacheStrategy.GetIfExistsAsync(context.NormalizedAddress);
         if (cached == null) return context;
 
-        _logger.LogInformation("Cache hit for: {Address}", context.NormalizedAddress);
+        // Sanitize user-provided address before logging to prevent log forging
+        var sanitizedAddress = context.NormalizedAddress.Replace("\r", "").Replace("\n", "");
+        _logger.LogInformation("Cache hit for: {Address}", sanitizedAddress);
         context.Result = AddressMapper.ToResponse(cached);
         context.ModelUsed = cached.ModelUsed;
         context.FromCache = true;

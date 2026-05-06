@@ -21,6 +21,11 @@ public class PersistenceStep : ICorrectionStep
     {
         if (context.Result == null || context.FromCache) return context;
 
+        if (string.IsNullOrEmpty(context.NormalizedAddress))
+            throw new InvalidOperationException("NormalizedAddress must be set before PersistenceStep.");
+        if (context.ModelUsed == null)
+            throw new InvalidOperationException("ModelUsed must be set before PersistenceStep.");
+
         var record = AddressMapper.ToRecord(
             context.Request,
             context.Result,

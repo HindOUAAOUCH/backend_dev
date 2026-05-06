@@ -100,13 +100,21 @@ builder.Services.AddScoped<ILlmOrchestrator, LlmOrchestrator>();
 builder.Services.AddScoped<IRequestTracker, RequestTracker>();
 
 // ── Pipeline de correction ────────────────────────────────────────────────────
-// Les étapes sont enregistrées dans l'ordre d'exécution du pipeline.
-builder.Services.AddScoped<ICorrectionStep, CacheLookupStep>();
-builder.Services.AddScoped<ICorrectionStep, LlmProcessingStep>();
-builder.Services.AddScoped<ICorrectionStep, ReferentialValidationStep>();
-builder.Services.AddScoped<ICorrectionStep, PersistenceStep>();
-builder.Services.AddScoped<ICorrectionStep, TrackingStep>();
-builder.Services.AddScoped<AddressCorrectionPipeline>();
+// Les étapes sont enregistrées individuellement pour résolution par le conteneur DI,
+// puis assemblées dans un ordre explicite via une factory pour garantir la séquence.
+builder.Services.AddScoped<CacheLookupStep>();
+builder.Services.AddScoped<LlmProcessingStep>();
+builder.Services.AddScoped<ReferentialValidationStep>();
+builder.Services.AddScoped<PersistenceStep>();
+builder.Services.AddScoped<TrackingStep>();
+builder.Services.AddScoped<AddressCorrectionPipeline>(sp => new AddressCorrectionPipeline(
+[
+    sp.GetRequiredService<CacheLookupStep>(),
+    sp.GetRequiredService<LlmProcessingStep>(),
+    sp.GetRequiredService<ReferentialValidationStep>(),
+    sp.GetRequiredService<PersistenceStep>(),
+    sp.GetRequiredService<TrackingStep>(),
+]));
 
 // ── Orchestrateur final ───────────────────────────────────────────────────────
 builder.Services.AddScoped<IAddressCorrector, AddressCorrectionOrchestrator>();
