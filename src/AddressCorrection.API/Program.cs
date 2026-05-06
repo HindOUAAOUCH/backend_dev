@@ -1,9 +1,12 @@
 using AddressCorrection.src.AddressCorrection.Application.Configuration;
 using AddressCorrection.src.AddressCorrection.Application.Interfaces;
+using AddressCorrection.src.AddressCorrection.Application.Pipeline;
+using AddressCorrection.src.AddressCorrection.Application.Pipeline.Steps;
 using AddressCorrection.src.AddressCorrection.Application.Services;
 using AddressCorrection.src.AddressCorrection.Infrastructure.LLMClients;
 using AddressCorrection.src.AddressCorrection.Infrastructure.Persistence;
 using AddressCorrection.src.AddressCorrection.Infrastructure.Referentials;
+using AddressCorrection.src.AddressCorrection.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,8 +92,32 @@ builder.Services.AddScoped<IAddressReferentialService, AddressReferentialService
 
 // ── Services applicatifs ──────────────────────────────────────────────────────
 builder.Services.AddScoped<ILlmClient, GitHubLlmClient>();
-builder.Services.AddScoped<IAddressService, AddressCorrectionService>();
-builder.Services.AddSingleton<IModelSelectionService, ModelSelectionService>(); // thread-safe
+builder.Services.AddSingleton<IActiveLlmModelProvider, ActiveLlmModelProvider>(); // thread-safe
+
+// ── Stratégies et orchestrateurs (Infrastructure) ────────────────────────────
+builder.Services.AddScoped<IAddressCacheStrategy, AddressCacheStrategy>();
+builder.Services.AddScoped<ILlmOrchestrator, LlmOrchestrator>();
+builder.Services.AddScoped<IRequestTracker, RequestTracker>();
+
+// ── Pipeline de correction ────────────────────────────────────────────────────
+// Les étapes sont enregistrées individuellement pour résolution par le conteneur DI,
+// puis assemblées dans un ordre explicite via une factory pour garantir la séquence.
+builder.Services.AddScoped<CacheLookupStep>();
+builder.Services.AddScoped<LlmProcessingStep>();
+builder.Services.AddScoped<ReferentialValidationStep>();
+builder.Services.AddScoped<PersistenceStep>();
+builder.Services.AddScoped<TrackingStep>();
+builder.Services.AddScoped<AddressCorrectionPipeline>(sp => new AddressCorrectionPipeline(
+[
+    sp.GetRequiredService<CacheLookupStep>(),
+    sp.GetRequiredService<LlmProcessingStep>(),
+    sp.GetRequiredService<ReferentialValidationStep>(),
+    sp.GetRequiredService<PersistenceStep>(),
+    sp.GetRequiredService<TrackingStep>(),
+]));
+
+// ── Orchestrateur final ───────────────────────────────────────────────────────
+builder.Services.AddScoped<IAddressCorrector, AddressCorrectionOrchestrator>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
