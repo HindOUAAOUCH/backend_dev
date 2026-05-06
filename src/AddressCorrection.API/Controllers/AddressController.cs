@@ -9,12 +9,12 @@ namespace AddressCorrection.src.AddressCorrection.API.Controllers;
 [Route("api/[controller]")]
 public class AddressController : ControllerBase
 {
-    private readonly IAddressService _addressService;
+    private readonly IAddressCorrector _addressCorrector;
     private readonly ILogger<AddressController> _logger;
 
-    public AddressController(IAddressService addressService, ILogger<AddressController> logger)
+    public AddressController(IAddressCorrector addressCorrector, ILogger<AddressController> logger)
     {
-        _addressService = addressService;
+        _addressCorrector = addressCorrector;
         _logger = logger;
     }
 
@@ -27,7 +27,7 @@ public class AddressController : ControllerBase
     {
         try
         {
-            var result = await _addressService.CorrectAsync(request);
+            var result = await _addressCorrector.CorrectAsync(request);
             return Ok(result);
         }
         catch (ArgumentException ex)

@@ -1,8 +1,8 @@
 using AddressCorrection.src.AddressCorrection.Application.Interfaces;
 
-namespace AddressCorrection.src.AddressCorrection.Application.Services;
+namespace AddressCorrection.src.AddressCorrection.Infrastructure.Services;
 
-public class ModelSelectionService : IModelSelectionService
+public class ActiveLlmModelProvider : IActiveLlmModelProvider
 {
     private string? _selectedModel;
     private readonly Lock _lock = new();
