@@ -12,6 +12,11 @@ public class TrackingStep : ICorrectionStep
         _tracker = tracker;
     }
 
+    /// <inheritdoc />
+    /// Tracking must always run, including when a previous step (e.g. LLM) fails,
+    /// so that failure events are recorded for analytics and diagnostics.
+    public bool RunAlways => true;
+
     public async Task<AddressCorrectionContext> ExecuteAsync(AddressCorrectionContext context)
     {
         context.DurationMs = (long)(DateTimeOffset.UtcNow - context.StartedAt).TotalMilliseconds;

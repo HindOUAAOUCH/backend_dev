@@ -20,7 +20,9 @@ public class CacheLookupStep : ICorrectionStep
         var cached = await _cache.GetIfExistsAsync(context.NormalizedAddress!);
         if (cached == null) return context;
 
-        _logger.LogInformation("Cache hit for: {Address}", context.NormalizedAddress);
+        // Sanitize before logging to prevent log forging from embedded newlines
+        var sanitizedAddress = context.NormalizedAddress?.Replace("\r", string.Empty).Replace("\n", string.Empty);
+        _logger.LogInformation("Cache hit for: {Address}", sanitizedAddress);
 
         context.Result = AddressMapper.ToResponse(cached);
         context.FromCache = true;

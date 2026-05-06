@@ -13,6 +13,9 @@ public class AddressCorrectionPipeline
     {
         foreach (var step in _steps)
         {
+            // Short-circuit on failure, but always-run steps (e.g. TrackingStep) still execute
+            if (context.IsFailed && !step.RunAlways) continue;
+
             context = await step.ExecuteAsync(context);
         }
 
