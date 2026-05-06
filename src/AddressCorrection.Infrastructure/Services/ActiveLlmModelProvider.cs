@@ -1,8 +1,12 @@
 using AddressCorrection.src.AddressCorrection.Application.Interfaces;
 
-namespace AddressCorrection.src.AddressCorrection.Application.Services;
+namespace AddressCorrection.src.AddressCorrection.Infrastructure.Services;
 
-public class ModelSelectionService : IModelSelectionService
+/// <summary>
+/// Fournit le modèle LLM actif sélectionné par l'utilisateur.
+/// Thread-safe via lock : utilisé en singleton dans l'application.
+/// </summary>
+public class ActiveLlmModelProvider : IActiveLlmModelProvider
 {
     private string? _selectedModel;
     private readonly Lock _lock = new();
