@@ -97,7 +97,14 @@ builder.Services.AddScoped<ILlmOrchestrator, LlmOrchestrator>();
 builder.Services.AddScoped<IRequestTracker, RequestTracker>();
 builder.Services.AddSingleton<IActiveLlmModelProvider, ActiveLlmModelProvider>(); // thread-safe
 
-// ── Pipeline Steps (order matters) ───────────────────────────────────────────
+// ── Pipeline Steps ────────────────────────────────────────────────────────────
+// Steps are executed in the order they are registered.
+// Changing this order will break the correction flow:
+//   1. CacheLookupStep        — return early if address is already cached
+//   2. LlmProcessingStep      — call LLM(s) with multi-model fallback
+//   3. ReferentialValidationStep — enrich/validate with address referentials (BAN, etc.)
+//   4. PersistenceStep        — save the corrected address to the cache
+//   5. TrackingStep           — log the request for analytics (always runs, even on failure)
 builder.Services.AddScoped<ICorrectionStep, CacheLookupStep>();
 builder.Services.AddScoped<ICorrectionStep, LlmProcessingStep>();
 builder.Services.AddScoped<ICorrectionStep, ReferentialValidationStep>();

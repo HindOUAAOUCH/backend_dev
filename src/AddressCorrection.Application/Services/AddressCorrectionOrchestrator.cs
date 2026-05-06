@@ -26,7 +26,8 @@ public class AddressCorrectionOrchestrator : IAddressCorrector
         var context = new AddressCorrectionContext
         {
             Request = request,
-            NormalizedAddress = request.RawAddress.Trim().ToLowerInvariant(),
+            NormalizedAddress = request.RawAddress.Trim().ToLowerInvariant()
+                .Replace("\r", string.Empty).Replace("\n", string.Empty),
         };
 
         context = await _pipeline.ExecuteAsync(context);
