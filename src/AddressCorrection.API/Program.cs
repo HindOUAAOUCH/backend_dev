@@ -24,21 +24,24 @@ builder.Services.AddCors(options =>
     );
 });
 
-// ── Configuration avec validation au démarrage ────────────────────────────────
+// ── Configuration ────────────────────────────────────────────────────────────
 // Les secrets ne doivent JAMAIS être dans appsettings.json (versionné).
 // Utiliser : variables d'environnement, dotnet user-secrets (dev), Azure Key Vault (prod).
 //
 // Exemples de variables d'environnement :
 //   GitHubModels__Token=ghp_xxxx
 //   MongoDB__ConnectionString=mongodb://...
+//
+// La validation est différée (lazy) : elle s'exécute lors du premier accès à la
+// configuration, une fois que tous les providers (dont appsettings.Development.json)
+// ont été chargés.
 builder.Services
     .AddOptions<GitHubModelsConfig>()
     .Bind(builder.Configuration.GetSection("GitHubModels"))
     .Validate(
         cfg => !string.IsNullOrWhiteSpace(cfg.Token)
                || cfg.Models.Any(m => !string.IsNullOrWhiteSpace(m.Token)),
-        "GitHubModels: at least a global Token or one per-model Token must be configured.")
-    .ValidateOnStart();
+        "GitHubModels: at least a global Token or one per-model Token must be configured.");
 
 // ── HTTP Clients ──────────────────────────────────────────────────────────────
 
