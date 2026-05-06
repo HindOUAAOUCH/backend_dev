@@ -2,11 +2,14 @@ using AddressCorrection.src.AddressCorrection.Application.DTOs;
 using AddressCorrection.src.AddressCorrection.Application.Interfaces;
 using AddressCorrection.src.AddressCorrection.Application.Pipeline;
 using System.Runtime.ExceptionServices;
+using System.Text.RegularExpressions;
 
 namespace AddressCorrection.src.AddressCorrection.Application.Services;
 
 public class AddressCorrectionOrchestrator : IAddressCorrector
 {
+    private static readonly Regex NewLinePattern = new(@"[\r\n]+", RegexOptions.Compiled);
+
     private readonly AddressCorrectionPipeline _pipeline;
     private readonly ILogger<AddressCorrectionOrchestrator> _logger;
 
@@ -26,8 +29,9 @@ public class AddressCorrectionOrchestrator : IAddressCorrector
         var context = new AddressCorrectionContext
         {
             Request = request,
-            NormalizedAddress = request.RawAddress.Trim().ToLowerInvariant()
-                .Replace("\r", string.Empty).Replace("\n", string.Empty),
+            // Normalize and strip CR/LF to prevent log-forging in downstream steps.
+            NormalizedAddress = NewLinePattern.Replace(
+                request.RawAddress.Trim().ToLowerInvariant(), string.Empty),
         };
 
         context = await _pipeline.ExecuteAsync(context);
