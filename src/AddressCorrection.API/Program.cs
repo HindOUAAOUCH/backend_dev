@@ -108,7 +108,11 @@ if (app.Environment.IsDevelopment())
 // CORS doit être placé AVANT UseAuthorization et MapControllers
 app.UseCors("AllowFrontend");
 
-app.UseHttpsRedirection();
+// En développement, désactiver la redirection HTTPS pour éviter les conflits HTTP/HTTPS
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
