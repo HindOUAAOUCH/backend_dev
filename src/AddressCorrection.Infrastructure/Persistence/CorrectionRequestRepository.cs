@@ -1,23 +1,26 @@
 ﻿using AddressCorrection.src.AddressCorrection.Application.Interfaces;
 using AddressCorrection.src.AddressCorrection.Domain.Entities;
+using AddressCorrection.src.AddressCorrection.Infrastructure.Mappers;
+using AddressCorrection.src.AddressCorrection.Infrastructure.Persistence.Documents;
 using MongoDB.Driver;
 
 namespace AddressCorrection.src.AddressCorrection.Infrastructure.Persistence;
 
 public sealed class CorrectionRequestRepository : ICorrectionRequestRepository
 {
-    private readonly IMongoCollection<CorrectionRequest> _collection;
+    private readonly IMongoCollection<CorrectionRequestDocument> _collection;
 
     public CorrectionRequestRepository(MongoDbContext context)
     {
-        _collection = context.GetCollection<CorrectionRequest>("correction_requests");
+        _collection = context.GetCollection<CorrectionRequestDocument>("correction_requests");
     }
 
     // ── Écriture ──────────────────────────────────────────────────────────────
 
     public async Task SaveAsync(CorrectionRequest request)
     {
-        await _collection.InsertOneAsync(request);
+        var doc = CorrectionRequestDocumentMapper.ToDocument(request);
+        await _collection.InsertOneAsync(doc);
     }
 
     // ── Lecture — aujourd'hui ─────────────────────────────────────────────────
@@ -25,10 +28,11 @@ public sealed class CorrectionRequestRepository : ICorrectionRequestRepository
     public async Task<List<CorrectionRequest>> GetTodayRequestsAsync()
     {
         var startOfDay = DateTime.UtcNow.Date;
-        return await _collection
+        var docs = await _collection
             .Find(r => r.SentAt >= startOfDay)
             .SortByDescending(r => r.SentAt)
             .ToListAsync();
+        return docs.ConvertAll(CorrectionRequestDocumentMapper.ToEntity);
     }
 
     // ── Lecture — paginée avec filtres ────────────────────────────────────────
@@ -44,7 +48,7 @@ public sealed class CorrectionRequestRepository : ICorrectionRequestRepository
         page = Math.Max(page, 1);
 
         // Construction du filtre
-        var builder = Builders<CorrectionRequest>.Filter;
+        var builder = Builders<CorrectionRequestDocument>.Filter;
         var filter = builder.Empty;
 
         if (!string.IsNullOrWhiteSpace(status))
@@ -60,13 +64,14 @@ public sealed class CorrectionRequestRepository : ICorrectionRequestRepository
         var total = await _collection.CountDocumentsAsync(filter);
 
         // Récupération de la page
-        var items = await _collection
+        var docs = await _collection
             .Find(filter)
             .SortByDescending(r => r.SentAt)
             .Skip((page - 1) * pageSize)
             .Limit(pageSize)
             .ToListAsync();
 
+        var items = docs.ConvertAll(CorrectionRequestDocumentMapper.ToEntity);
         return new PagedResult<CorrectionRequest>(items, (int)total, page, pageSize);
     }
 
@@ -78,11 +83,11 @@ public sealed class CorrectionRequestRepository : ICorrectionRequestRepository
 
         // Exécution parallèle des 5 compteurs pour minimiser la latence
         var (total, success, failed, cacheHits, today) = await (
-            _collection.CountDocumentsAsync(Builders<CorrectionRequest>.Filter.Empty),
-            _collection.CountDocumentsAsync(Builders<CorrectionRequest>.Filter.Eq(r => r.Status, "success")),
-            _collection.CountDocumentsAsync(Builders<CorrectionRequest>.Filter.Eq(r => r.Status, "failed")),
-            _collection.CountDocumentsAsync(Builders<CorrectionRequest>.Filter.Eq(r => r.FromCache, true)),
-            _collection.CountDocumentsAsync(Builders<CorrectionRequest>.Filter.Gte(r => r.SentAt, startOfDay))
+            _collection.CountDocumentsAsync(Builders<CorrectionRequestDocument>.Filter.Empty),
+            _collection.CountDocumentsAsync(Builders<CorrectionRequestDocument>.Filter.Eq(r => r.Status, "success")),
+            _collection.CountDocumentsAsync(Builders<CorrectionRequestDocument>.Filter.Eq(r => r.Status, "failed")),
+            _collection.CountDocumentsAsync(Builders<CorrectionRequestDocument>.Filter.Eq(r => r.FromCache, true)),
+            _collection.CountDocumentsAsync(Builders<CorrectionRequestDocument>.Filter.Gte(r => r.SentAt, startOfDay))
         ).WhenAll();
 
         return new CorrectionStats(total, success, failed, cacheHits, today);

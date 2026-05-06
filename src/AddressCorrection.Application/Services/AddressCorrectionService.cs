@@ -4,6 +4,7 @@ using AddressCorrection.src.AddressCorrection.Application.Exceptions;
 using AddressCorrection.src.AddressCorrection.Application.Interfaces;
 using AddressCorrection.src.AddressCorrection.Application.Mappers;
 using AddressCorrection.src.AddressCorrection.Application.Prompts;
+using AddressCorrection.src.AddressCorrection.Domain.Constants;
 using AddressCorrection.src.AddressCorrection.Domain.Entities;
 using AddressCorrection.src.AddressCorrection.Infrastructure.Policies;
 using Microsoft.Extensions.Options;
@@ -20,7 +21,7 @@ public class AddressCorrectionService : IAddressService
     private readonly IAddressRepository _addressRepository;
     private readonly ICorrectionRequestRepository _correctionRequestRepository;
     private readonly IUsageTrackingRepository _usageTrackingRepository;
-    private readonly AddressReferentialService _referentialService;
+    private readonly IAddressReferentialService _referentialService;
     private readonly ILogger<AddressCorrectionService> _logger;
 
     private static readonly JsonSerializerOptions JsonOptions =
@@ -33,7 +34,7 @@ public class AddressCorrectionService : IAddressService
         IAddressRepository addressRepository,
         ICorrectionRequestRepository correctionRequestRepository,
         IUsageTrackingRepository usageTrackingRepository,
-        AddressReferentialService referentialService,
+        IAddressReferentialService referentialService,
         ILogger<AddressCorrectionService> logger)
     {
         _llmClient = llmClient;
@@ -67,7 +68,7 @@ public class AddressCorrectionService : IAddressService
                 correctedAddress: AddressMapper.ToFormattedLine(cachedResponse),
                 fromCache: true,
                 modelUsed: cached.ModelUsed,
-                status: "success",
+                status: CorrectionConstants.Status.Success,
                 durationMs: stopwatch.ElapsedMilliseconds);
             await _usageTrackingRepository.IncrementAsync(fromCache: true);
             return cachedResponse;
@@ -110,8 +111,8 @@ public class AddressCorrectionService : IAddressService
                 rawAddress: request.RawAddress,
                 correctedAddress: null,
                 fromCache: false,
-                modelUsed: "none",
-                status: "failed",
+                modelUsed: CorrectionConstants.Model.None,
+                status: CorrectionConstants.Status.Failed,
                 durationMs: stopwatch.ElapsedMilliseconds);
             throw new AllModelsFailedException();
         }
@@ -142,7 +143,7 @@ public class AddressCorrectionService : IAddressService
             correctedAddress: AddressMapper.ToFormattedLine(llmResult),
             fromCache: false,
             modelUsed: modelUsed!,
-            status: "success",
+            status: CorrectionConstants.Status.Success,
             durationMs: stopwatch.ElapsedMilliseconds);
 
         await _usageTrackingRepository.IncrementAsync(fromCache: false);
@@ -181,12 +182,12 @@ public class AddressCorrectionService : IAddressService
         await _correctionRequestRepository.SaveAsync(new CorrectionRequest
         {
             RawAddress = rawAddress,
-            CorrectedAddress = correctedAddress,   // ← renseigné maintenant
+            CorrectedAddress = correctedAddress,
             FromCache = fromCache,
             ModelUsed = modelUsed,
             Status = status,
             DurationMs = durationMs,
-            Source = "API",
+            Source = CorrectionConstants.Source.Api,
             SentAt = DateTime.UtcNow,
         });
     }

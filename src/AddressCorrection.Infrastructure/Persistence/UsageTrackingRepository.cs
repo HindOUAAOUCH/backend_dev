@@ -1,24 +1,27 @@
 using AddressCorrection.src.AddressCorrection.Application.Interfaces;
 using AddressCorrection.src.AddressCorrection.Domain.Entities;
+using AddressCorrection.src.AddressCorrection.Infrastructure.Mappers;
+using AddressCorrection.src.AddressCorrection.Infrastructure.Persistence.Documents;
 using MongoDB.Driver;
 
 namespace AddressCorrection.src.AddressCorrection.Infrastructure.Persistence;
 
 public sealed class UsageTrackingRepository : IUsageTrackingRepository
 {
-    private readonly IMongoCollection<UsageTracking> _collection;
+    private readonly IMongoCollection<UsageTrackingDocument> _collection;
 
     public UsageTrackingRepository(MongoDbContext context)
     {
-        _collection = context.GetCollection<UsageTracking>("usage_tracking");
+        _collection = context.GetCollection<UsageTrackingDocument>("usage_tracking");
     }
 
     public async Task<UsageTracking?> GetTodayAsync()
     {
         var today = DateTime.UtcNow.Date;
-        return await _collection
+        var doc = await _collection
             .Find(u => u.Date == today)
             .FirstOrDefaultAsync();
+        return doc is null ? null : UsageTrackingDocumentMapper.ToEntity(doc);
     }
 
     /// <summary>
@@ -29,9 +32,9 @@ public sealed class UsageTrackingRepository : IUsageTrackingRepository
     {
         var today = DateTime.UtcNow.Date;
 
-        var filter = Builders<UsageTracking>.Filter.Eq(u => u.Date, today);
+        var filter = Builders<UsageTrackingDocument>.Filter.Eq(u => u.Date, today);
 
-        var update = Builders<UsageTracking>.Update
+        var update = Builders<UsageTrackingDocument>.Update
             .SetOnInsert(u => u.Date, today)
             .SetOnInsert(u => u.LimitReached, false)
             .Inc(u => u.RequestCount, 1)

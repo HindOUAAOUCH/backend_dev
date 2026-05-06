@@ -1,11 +1,17 @@
-namespace AddressCorrection.src.AddressCorrection.Domain.Entities;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace AddressCorrection.src.AddressCorrection.Infrastructure.Persistence.Documents;
 
 /// <summary>
-/// Entité domain représentant un enregistrement de correction d'adresse (cache).
-/// Aucune dépendance sur l'infrastructure (pas d'annotations MongoDB).
+/// Document MongoDB pour la collection "address_corrections" (cache d'adresses corrigées).
+/// Contient toutes les annotations MongoDB — la couche Domain n'en a aucune.
 /// </summary>
-public sealed class AddressCorrectionRecord
+[BsonIgnoreExtraElements]
+public sealed class AddressCorrectionDocument
 {
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
     public string? Id { get; set; }
 
     public string RawAddress { get; set; } = string.Empty;
@@ -21,6 +27,5 @@ public sealed class AddressCorrectionRecord
     public string ModelUsed { get; set; } = string.Empty;
     public bool FromCache { get; set; }
     public DateTime ProcessedAt { get; set; } = DateTime.UtcNow;
-
     public DateTime CreatedAt { get; set; }
 }
