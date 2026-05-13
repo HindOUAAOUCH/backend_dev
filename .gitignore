@@ -15,3 +15,57 @@ obj/
 # OS
 .DS_Store
 Thumbs.db
+
+# ================================
+# .NET build
+# ================================
+bin/
+obj/
+out/
+publish/
+
+# ================================
+# User secrets (.NET)
+# ================================
+**/secrets.json
+**/appsettings.Development.json
+**/appsettings.*.json
+
+# MAIS IMPORTANT :
+# tu peux garder appsettings.json sans secrets
+
+# ================================
+# Logs
+# ================================
+*.log
+
+# ================================
+# Visual Studio / VSCode
+# ================================
+.vs/
+.vscode/
+*.user
+*.suo
+
+# ================================
+# OS files
+# ================================
+.DS_Store
+Thumbs.db
+
+# ================================
+# Environment variables
+# ================================
+.env
+
+# ================================
+# Node (si futur front)
+# ================================
+node_modules/
+
+# ================================
+# Secrets / keys
+# ================================
+*.pem
+*.key
+*.pfx

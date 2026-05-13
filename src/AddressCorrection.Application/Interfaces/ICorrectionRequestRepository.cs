@@ -24,7 +24,9 @@ public interface ICorrectionRequestRepository
         int page,
         int pageSize,
         string? status = null,
-        string? search = null);
+        string? search = null,
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null);
 
     /// <summary>Retourne les compteurs globaux pour le tableau de bord.</summary>
     Task<CorrectionStats> GetStatsAsync();

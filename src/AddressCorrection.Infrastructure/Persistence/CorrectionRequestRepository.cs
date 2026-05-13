@@ -41,13 +41,13 @@ public sealed class CorrectionRequestRepository : ICorrectionRequestRepository
         int page,
         int pageSize,
         string? status = null,
-        string? search = null)
+        string? search = null,
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null)
     {
-        // Borne la taille de page pour éviter les abus
         pageSize = Math.Clamp(pageSize, 1, 100);
         page = Math.Max(page, 1);
 
-        // Construction du filtre
         var builder = Builders<CorrectionRequestDocument>.Filter;
         var filter = builder.Empty;
 
@@ -57,13 +57,16 @@ public sealed class CorrectionRequestRepository : ICorrectionRequestRepository
         if (!string.IsNullOrWhiteSpace(search))
             filter &= builder.Regex(
                 r => r.RawAddress,
-                new MongoDB.Bson.BsonRegularExpression(search, "i") // insensible à la casse
-            );
+                new MongoDB.Bson.BsonRegularExpression(search, "i"));
 
-        // Compte total (pour la pagination côté frontend)
+        if (dateFrom.HasValue)
+            filter &= builder.Gte(r => r.SentAt, dateFrom.Value);
+
+        if (dateTo.HasValue)
+            filter &= builder.Lte(r => r.SentAt, dateTo.Value);
+
         var total = await _collection.CountDocumentsAsync(filter);
 
-        // Récupération de la page
         var docs = await _collection
             .Find(filter)
             .SortByDescending(r => r.SentAt)
@@ -81,7 +84,6 @@ public sealed class CorrectionRequestRepository : ICorrectionRequestRepository
     {
         var startOfDay = DateTime.UtcNow.Date;
 
-        // Exécution parallèle des 5 compteurs pour minimiser la latence
         var (total, success, failed, cacheHits, today) = await (
             _collection.CountDocumentsAsync(Builders<CorrectionRequestDocument>.Filter.Empty),
             _collection.CountDocumentsAsync(Builders<CorrectionRequestDocument>.Filter.Eq(r => r.Status, "success")),
